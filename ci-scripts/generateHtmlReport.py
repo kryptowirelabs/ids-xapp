@@ -65,6 +65,7 @@ def ctest_summary(args, reportName):
         section_end_pattern = 'Total Test time'
         section_status = False
         summary = generate_list_header()
+        test_name_list = []
         with open(f'{cwd}/archives/{reportName}', 'r') as logfile:
             for line in logfile:
                 if re.search(section_start_pattern, line) is not None and not section_status:
@@ -72,12 +73,14 @@ def ctest_summary(args, reportName):
                 if section_status and re.search(section_end_pattern, line) is not None:
                     section_status = False
                 if section_status:
-                    result = re.search('(Test *#[0-9]+: Unit_test_[A-Za-z0-9_]+) [\.]+', line)
+                    result = re.search('(Unit_test_[A-Za-z0-9_]+) [\.]+', line)
                     passed = re.search('Passed', line)
-                    if result is not None and passed is not None:
-                        summary += generate_list_row(result.group(1), 'thumbs-up')
-                    elif result is not None:
-                        summary += generate_list_row(result.group(1), 'thumbs-down')
+                    if result is not None and result not in test_name_list:
+                        test_name_list.append(result)
+                        if passed is not None:
+                            summary += generate_list_row(result.group(1)[10:], 'thumbs-up')
+                        else:
+                            summary += generate_list_row(result.group(1)[10:], 'thumbs-down')
         summary += generate_list_footer()
     else:
         summary = generate_chapter(chapterName, 'CTests report file not found! Not run?', False)

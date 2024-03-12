@@ -84,4 +84,26 @@ RUN mkdir build && \
           .. && \
     ninja && \
     ninja install && \
+    ctest -j8 --output-on-failure && \
+    cmake -GNinja \
+          -DCMAKE_C_COMPILER=gcc-12 \
+          -DCMAKE_CXX_COMPILER=g++-12 \
+          -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=mold -z execstack" \
+          -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=mold -z execstack" \
+          -DE2AP_VERSION=E2AP_V1 \
+          -DKPM_VERSION=KPM_V2_01 \
+          .. && \
+    ninja && \
+    ninja install && \
+    ctest -j8 --output-on-failure && \
+    cmake -GNinja \
+          -DCMAKE_C_COMPILER=gcc-12 \
+          -DCMAKE_CXX_COMPILER=g++-12 \
+          -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=mold -z execstack" \
+          -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=mold -z execstack" \
+          -DE2AP_VERSION=E2AP_V3 \
+          -DKPM_VERSION=KPM_V3_00 \
+          .. && \
+    ninja && \
+    ninja install && \
     ctest -j8 --output-on-failure
