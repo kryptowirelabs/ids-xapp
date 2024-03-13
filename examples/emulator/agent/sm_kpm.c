@@ -572,6 +572,7 @@ bool read_kpm_sm(void* data)
   return true;
 }
 
+#if defined KPM_V2_03 || defined KPM_V3_00 
 static
 ric_report_style_item_t fill_ric_report_style_item(void)  
 {
@@ -638,6 +639,20 @@ ric_report_style_item_t fill_ric_report_style_item(void)
 
   return dst;
 }
+#endif
+
+static
+ric_event_trigger_style_item_t fill_kpm_ev_tr_style(void)
+{
+  ric_event_trigger_style_item_t ev_tr_item = {0};
+
+  ev_tr_item.style_type = STYLE_1_RIC_EVENT_TRIGGER;
+  const char ev_style_name[] = "Periodic Report";
+  ev_tr_item.style_name = cp_str_to_ba(ev_style_name);
+  ev_tr_item.format_type = FORMAT_1_RIC_EVENT_TRIGGER;
+
+  return ev_tr_item;
+}
 
 static
 kpm_ran_function_def_t fill_kpm_ran_func_def(void)
@@ -645,13 +660,22 @@ kpm_ran_function_def_t fill_kpm_ran_func_def(void)
   kpm_ran_function_def_t dst = {0}; 
  
   // RAN Function name is already filled by the kpm_sm_agent.c
-  dst.sz_ric_event_trigger_style_list = 0;
-  dst.ric_event_trigger_style_list = 0;
 
-  dst.sz_ric_report_style_list = 1;
-  dst.ric_report_style_list = ecalloc(dst.sz_ric_report_style_list, sizeof(ric_report_style_item_t )); 
+  // Sequence of Event Trigger styles
+  size_t const sz_ev_tr = 1;
+  dst.sz_ric_event_trigger_style_list = sz_ev_tr;
+  dst.ric_event_trigger_style_list = ecalloc(sz_ev_tr, sizeof(ric_event_trigger_style_item_t));
+  
+  dst.ric_event_trigger_style_list[0] = fill_kpm_ev_tr_style();
+
+  // Sequence of Report styles
+#if defined KPM_V2_03 || defined KPM_V3_00
+  size_t const sz_report = 1;
+  dst.sz_ric_report_style_list = sz_report;
+  dst.ric_report_style_list = ecalloc(sz_report, sizeof(ric_report_style_item_t )); 
 
   dst.ric_report_style_list[0] = fill_ric_report_style_item();
+#endif
 
   return dst;
 }
