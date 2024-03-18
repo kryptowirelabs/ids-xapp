@@ -1,4 +1,4 @@
-/*
+	/*
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -31,7 +31,9 @@
 #include <signal.h>
 #include <pthread.h>
 
-
+// Anomaly detection thresholds
+#define MAX_PDCP_SDU_VOLUME_DL 500 // in kb
+#define MAX_RLC_SDU_DELAY_DL 10.0  // in μs
 static
 pthread_mutex_t mtx;
 
@@ -99,6 +101,22 @@ void sm_cb_kpm(sm_ag_if_rd_t const* rd)
               char meas_info_name_str[msg_frm_1->meas_info_lst[z].meas_type.name.len + 1];
               memcpy(meas_info_name_str, msg_frm_1->meas_info_lst[z].meas_type.name.buf, msg_frm_1->meas_info_lst[z].meas_type.name.len);
               meas_info_name_str[msg_frm_1->meas_info_lst[z].meas_type.name.len] = '\0';
+
+              // Anomaly detection logic    
+              if (strcmp(meas_info_name_str, "DRB.PdcpSduVolumeDL") == 0) {
+                    int pdcpSduVolumeDL = msg_frm_1->meas_data_lst[j].meas_record_lst[z].int_val;
+                    printf("DRB.PdcpSduVolumeDL = %d [kb]\n", pdcpSduVolumeDL);
+                    if (pdcpSduVolumeDL > MAX_PDCP_SDU_VOLUME_DL) {
+                        printf("Anomaly detected: PDCP SDU Volume DL exceeds threshold: %d kb\n", pdcpSduVolumeDL);
+                    }
+                }
+              else if (strcmp(meas_info_name_str, "DRB.RlcSduDelayDl") == 0) {
+                    double rlcSduDelayDl = msg_frm_1->meas_data_lst[j].meas_record_lst[z].real_val;
+                    printf("DRB.RlcSduDelayDl = %.2f [μs]\n", rlcSduDelayDl);
+                    if (rlcSduDelayDl > MAX_RLC_SDU_DELAY_DL) {
+                        printf("Anomaly detected: RLC SDU Delay DL exceeds threshold: %.2f μs\n", rlcSduDelayDl);
+
+
 
               // Get the value of the Measurement
               switch (msg_frm_1->meas_data_lst[j].meas_record_lst[z].value)
